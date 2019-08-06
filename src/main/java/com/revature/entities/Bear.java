@@ -1,10 +1,15 @@
 package com.revature.entities;
 
+import java.beans.Transient;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.Check;
 
 /* Using JPA Annotations to configure an Entity */
 /*
@@ -14,18 +19,30 @@ import javax.persistence.Table;
  * @Table (optional) - Provides optional table configuration
  * 
  * @Id - Indicates the primary key of a table
+ * 
+ * @GeneratedValue - Annotation used to configure how Hibernate generates values
+ * 
+ * @Column - Optional Column configuration such as Not Null or column name
  */
 
-
 @Entity
-@Table(name="bears")
+@Table(name = "bears")
+@Check(constraints="kilograms > 0")
 public class Bear {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
+
+	// Not Null
+	@Column(nullable = false)
 	private String breed;
+	
+	
+
 	private double kilograms;
+	
+	@Column(name="favorite_food")
 	private String favoriteFood;
 
 	public int getId() {
