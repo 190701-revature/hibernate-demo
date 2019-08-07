@@ -1,12 +1,12 @@
 package com.revature.entities;
 
-import java.beans.Transient;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Check;
@@ -27,23 +27,27 @@ import org.hibernate.annotations.Check;
 
 @Entity
 @Table(name = "bears")
-@Check(constraints="kilograms > 0")
+@Check(constraints = "kilograms > 0")
 public class Bear {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 
-	// Not Null
+	// nullable = false -> Not Null
+	// If we don't use an @Column annotation, will this be persisted?
+	// -Yes it will be. To prevent tracking, we can use @Transient
 	@Column(nullable = false)
 	private String breed;
-	
-	
 
 	private double kilograms;
-	
-	@Column(name="favorite_food")
+
+	@Column(name = "favorite_food")
 	private String favoriteFood;
+
+	@ManyToOne
+	@JoinColumn(name = "cave_id")
+	private Cave cave;
 
 	public int getId() {
 		return id;
@@ -75,6 +79,14 @@ public class Bear {
 
 	public void setFavoriteFood(String favoriteFood) {
 		this.favoriteFood = favoriteFood;
+	}
+
+	public Cave getCave() {
+		return cave;
+	}
+
+	public void setCave(Cave cave) {
+		this.cave = cave;
 	}
 
 	@Override

@@ -1,7 +1,7 @@
 package com.revature.launcher;
 
 
-import java.io.Serializable;
+import java.util.ArrayList;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -11,6 +11,8 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
 
 import com.revature.entities.Bear;
+import com.revature.entities.Cave;
+import com.revature.services.CaveService;
 
 /*
  * About CRUD operations on the Session Object
@@ -47,12 +49,43 @@ public class Launcher {
 	
 	public static void main(String[] args) {
 		sessionFactory = configure();
-		createABear();
-		Bear bear = getABear();
-		updateABear(bear);
-//		deleteABear(bear);
+		CaveService caveService = new CaveService(sessionFactory);
+//		Cave cave = caveService.getCave();
+//		System.out.println(cave.getCubicFeetSize());
+//		System.out.println(cave.getOccupants());
+
+		Bear bear = getABear(4);
+		System.out.println(bear.getCave().getCubicFeetSize());
+		
 	}
 	
+	private static void putBearsInCave() {
+		try(Session session = sessionFactory.openSession()) {
+			Transaction tx = session.beginTransaction();
+			Cave cave  = new Cave();
+			cave.setCubicFeetSize(100);
+			cave.setHasWater(false);
+			cave.setOccupants(new ArrayList());
+			session.save(cave);
+			
+			Bear bearA = session.get(Bear.class, 4);
+			cave.getOccupants().add(bearA);
+			
+			Bear bearB = session.get(Bear.class, 5);
+			cave.getOccupants().add(bearB);
+			
+			/**
+			 * Automatic dirty checking
+			 * Hibernate feature that allows it to automatically persist
+			 * changes to persistent context objects when a transaction/session
+			 * ends. This is possible because objects in the persistent context
+			 * are being actively tracked by Hibernate.
+			 */
+			
+			tx.commit();
+		}
+	}
+
 	public static void deleteABear(Bear bear) {
 		try(Session session = sessionFactory.openSession()) {
 			Transaction tx = session.beginTransaction();
@@ -76,9 +109,9 @@ public class Launcher {
 		System.out.println(bear);
 	}
 	
-	public static Bear getABear() {
+	public static Bear getABear(int id) {
 		try(Session session = sessionFactory.openSession()) {
-			return session.get(Bear.class, 3);
+			return session.get(Bear.class, id);
 		}
 	}
 	
@@ -104,7 +137,8 @@ public class Launcher {
 		// Builder pattern
 		Configuration configuration = new Configuration()
 			.configure() // Loads the configuration from hibernate.cfg.xml
-			.addAnnotatedClass(Bear.class); 
+			.addAnnotatedClass(Bear.class)
+			.addAnnotatedClass(Cave.class); 
 //			.setProperty("hibernate.connection.username", System.getenv("DB_PASSWORD")); 
 			// Used to set property values programmatically
 			
