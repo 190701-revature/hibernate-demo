@@ -12,7 +12,9 @@ import org.hibernate.service.ServiceRegistry;
 
 import com.revature.entities.Bear;
 import com.revature.entities.Cave;
+import com.revature.entities.HoneyJar;
 import com.revature.services.CaveService;
+import com.revature.services.HoneyJarService;
 
 /*
  * About CRUD operations on the Session Object
@@ -50,13 +52,36 @@ public class Launcher {
 	public static void main(String[] args) {
 		sessionFactory = configure();
 		CaveService caveService = new CaveService(sessionFactory);
+		HoneyJarService honeyJarService = new HoneyJarService(sessionFactory);
 //		Cave cave = caveService.getCave();
 //		System.out.println(cave.getCubicFeetSize());
 //		System.out.println(cave.getOccupants());
 
-		Bear bear = getABear(4);
-		System.out.println(bear.getCave().getCubicFeetSize());
+//		Bear bear = getABear(4);
+//		HoneyJar honeyJar = honeyJarService.createHoneyJar();
+//		honeyJarService.giveHoneyJar(bear, honeyJar);
+////		System.out.println(bear.getCave().getCubicFeetSize());
 		
+		createBearFamily();
+		
+	}
+	
+	private static void createBearFamily() {
+		try(Session session = sessionFactory.openSession()) {
+			Transaction tx = session.beginTransaction();
+			
+			Bear bearA = session.get(Bear.class, 4);
+			Bear bearB = session.get(Bear.class, 5);
+			Bear bearC = session.get(Bear.class, 6);
+			Bear bearD = session.get(Bear.class, 7);
+			
+			bearA.getCubs().add(bearC);
+			bearA.getCubs().add(bearD);
+			bearB.getCubs().add(bearC);
+			bearB.getCubs().add(bearD);
+			
+			tx.commit();
+		}
 	}
 	
 	private static void putBearsInCave() {
@@ -138,7 +163,8 @@ public class Launcher {
 		Configuration configuration = new Configuration()
 			.configure() // Loads the configuration from hibernate.cfg.xml
 			.addAnnotatedClass(Bear.class)
-			.addAnnotatedClass(Cave.class); 
+			.addAnnotatedClass(Cave.class)
+			.addAnnotatedClass(HoneyJar.class); 
 //			.setProperty("hibernate.connection.username", System.getenv("DB_PASSWORD")); 
 			// Used to set property values programmatically
 			

@@ -1,12 +1,17 @@
 package com.revature.entities;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Check;
@@ -48,6 +53,21 @@ public class Bear {
 	@ManyToOne
 	@JoinColumn(name = "cave_id")
 	private Cave cave;
+	
+	
+	@OneToOne
+	@JoinColumn(name = "honey_jar_id")
+	private HoneyJar honeyJar;
+	
+	@ManyToMany
+	@JoinTable(name="bear_cubs", joinColumns = { @JoinColumn(name="parent_id") },
+			inverseJoinColumns = { @JoinColumn(name="cub_id")})
+	List<Bear> cubs;
+	
+	@ManyToMany
+	@JoinTable(name="bear_cubs", joinColumns = { @JoinColumn(name="cub_id")},
+			inverseJoinColumns = { @JoinColumn(name="parent_id")})
+	List<Bear> parents;
 
 	public int getId() {
 		return id;
@@ -87,6 +107,40 @@ public class Bear {
 
 	public void setCave(Cave cave) {
 		this.cave = cave;
+	}
+
+	public HoneyJar getHoneyjar() {
+		return honeyJar;
+	}
+
+	public void setHoneyjar(HoneyJar honeyjar) {
+		this.honeyJar = honeyjar;
+	}
+
+	
+	
+	public HoneyJar getHoneyJar() {
+		return honeyJar;
+	}
+
+	public void setHoneyJar(HoneyJar honeyJar) {
+		this.honeyJar = honeyJar;
+	}
+
+	public List<Bear> getCubs() {
+		return cubs;
+	}
+
+	public void setCubs(List<Bear> cubs) {
+		this.cubs = cubs;
+	}
+
+	public List<Bear> getParents() {
+		return parents;
+	}
+
+	public void setParents(List<Bear> parents) {
+		this.parents = parents;
 	}
 
 	@Override
