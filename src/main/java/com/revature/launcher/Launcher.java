@@ -2,6 +2,12 @@ package com.revature.launcher;
 
 
 import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -9,10 +15,12 @@ import org.hibernate.Transaction;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
+import org.hibernate.type.StringType;
 
 import com.revature.entities.Bear;
 import com.revature.entities.Cave;
 import com.revature.entities.HoneyJar;
+import com.revature.services.CacheService;
 import com.revature.services.CaveService;
 import com.revature.services.HoneyJarService;
 
@@ -53,6 +61,7 @@ public class Launcher {
 		sessionFactory = configure();
 		CaveService caveService = new CaveService(sessionFactory);
 		HoneyJarService honeyJarService = new HoneyJarService(sessionFactory);
+		CacheService cacheService = new CacheService(sessionFactory);
 //		Cave cave = caveService.getCave();
 //		System.out.println(cave.getCubicFeetSize());
 //		System.out.println(cave.getOccupants());
@@ -62,8 +71,107 @@ public class Launcher {
 //		honeyJarService.giveHoneyJar(bear, honeyJar);
 ////		System.out.println(bear.getCave().getCubicFeetSize());
 		
-		createBearFamily();
+//		createBearFamily();
 		
+//		createABear("grizzly");
+//		createABear("polar");
+//		createABear("koala");
+//		createABear("panda");
+//		createABear("brown");
+//		createABear("black");
+//		createABear("panda");
+//		createABear("koala");
+		
+		
+//		List<Bear> pandas = sampleHQLQuery("grizzly");
+//		List<Bear> salmonLovingBears = sampleCriteriaQuery("Salmon");
+//		System.out.println(salmonLovingBears);
+		
+//		namedQuerySample();
+//		nativeQuerySample();
+		
+		cacheService.testingTheL1Cache();
+		
+	}
+	
+	
+	/**
+	 * Native queries allow us to query the database using standard
+	 * SQL syntax instead hibernate syntax.  However, this should only be
+	 * done when Hibernate does not support the way you want to query.
+	 * 
+	 * This is because, when you use a native query it will invalidate
+	 * your cache.  Hibernate makes a lot of effort to cache objects in
+	 * memory to avoid unnecessary queries to the database. 
+	 */
+	private static void nativeQuerySample() {
+		try(Session session = sessionFactory.openSession()) {
+			String sql = "SELECT * FROM bears WHERE favorite_food = :favoriteFood";
+			List<Bear> bears = session.createNativeQuery(sql)
+			.setParameter("favoriteFood", "Salmon")
+			.addEntity(Bear.class)
+			.getResultList();
+			System.out.println(bears);
+		}
+	}
+
+	private static void namedQuerySample() {
+		try(Session session = sessionFactory.openSession()) {
+			List<Bear> bears = session.getNamedQuery("favoriteFoodQuery")
+				.setParameter("favoriteFood", "trout")
+				.list();
+			System.out.println(bears);
+		}
+	}
+
+	/*
+	 * HQL is Hibernate Query Language
+	 * HQL is a Domain Specific Language (DSL) for Hibernate to query
+	 * a database based on the Entity definition rather than Table definition
+	 * 
+	 * As a result, we reference classes and fields, rather than tables and 
+	 * columns.
+	 */
+	private static List<Bear> sampleHQLQuery(String breed) {
+		try(Session session = sessionFactory.openSession()) {
+//			String hql = "select b from Bear b WHERE b.breed LIKE :breed";
+			String hql = "from Bear b WHERE b.breed like : breed";
+			List<Bear> bears = session.createQuery(hql, Bear.class)
+					.setParameter("breed", breed, StringType.INSTANCE)
+					.list();
+			return bears;
+		}
+	}
+
+	/*
+	 * Criteria - It's Gross
+	 *
+	 * A purely object oriented way to query your database. The lack of a
+	 * string being used to define the query means that your development tools
+	 * can give you feedback when the syntax is incorrect.
+	 * 
+	 * Because Criteria uses builders, we can pass the builder around to make
+	 * queries in a more piecemeal fashion.
+	 * 
+	 * Session.getCriteriaBuilder() to start a criteria query
+	 * CriteriaBuilder & CriteriaQuery & Query interfaces
+	 * 
+	 * 
+	 */
+	private static List<Bear> sampleCriteriaQuery(String favoriteFood) {
+		try(Session session = sessionFactory.openSession()) {
+			CriteriaBuilder cb = session.getCriteriaBuilder();
+			CriteriaQuery<Bear> bearQuery = cb.createQuery(Bear.class);
+			Root<Bear> root = bearQuery.from(Bear.class);
+			
+			bearQuery.select(root)
+				.where(cb.equal(root.get("favoriteFood"), favoriteFood));
+
+			Query query = session.createQuery(bearQuery);
+			List<Bear> results = (List<Bear>) query.getResultList();
+			return results;
+			
+		}
 	}
 	
 	private static void createBearFamily() {
@@ -119,9 +227,9 @@ public class Launcher {
 		}
 	}
 
-	public static void createABear() {
+	public static void createABear(String bearColor) {
 		Bear bear = new Bear();
-		bear.setBreed("brown");
+		bear.setBreed(bearColor);
 		bear.setFavoriteFood("trout");
 		bear.setKilograms(100);
 		
